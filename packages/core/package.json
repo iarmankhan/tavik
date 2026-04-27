@@ -1,0 +1,25 @@
+{
+  "name": "@org-agent-skills/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@org-agent-skills/adapters": "workspace:*",
+    "@org-agent-skills/config": "workspace:*",
+    "execa": "^9.5.2",
+    "yaml": "^2.8.0",
+    "zod": "^3.24.2"
+  }
+}

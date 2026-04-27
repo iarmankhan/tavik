@@ -1,0 +1,41 @@
+{
+  "name": "tavik",
+  "version": "0.1.0",
+  "description": "CLI for managing organization-owned AI agent guidance and reusable skills.",
+  "type": "module",
+  "bin": {
+    "tavik": "./dist/index.js"
+  },
+  "main": "./dist/cli.js",
+  "types": "./dist/cli.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "default": "./dist/cli.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md"],
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": ["agents", "ai", "cli", "guidance", "skills"],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "prepack": "pnpm run clean && pnpm run build",
+    "test": "vitest run apps/cli/src/**/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --pretty false --noEmit && tsc -p tsconfig.test.json --pretty false"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.8.2",
+    "@org-agent-skills/config": "workspace:*",
+    "@org-agent-skills/core": "workspace:*",
+    "commander": "^13.1.0",
+    "execa": "^9.5.2"
+  }
+}
