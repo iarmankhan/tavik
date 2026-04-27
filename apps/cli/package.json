@@ -4,14 +4,12 @@
   "description": "CLI for managing organization-owned AI agent guidance and reusable skills.",
   "type": "module",
   "bin": {
-    "tavik": "./dist/index.js"
+    "tavik": "dist/index.js"
   },
-  "main": "./dist/cli.js",
-  "types": "./dist/cli.d.ts",
+  "main": "./dist/cli.cjs",
   "exports": {
     ".": {
-      "types": "./dist/cli.d.ts",
-      "default": "./dist/cli.js"
+      "default": "./dist/cli.cjs"
     },
     "./package.json": "./package.json"
   },
@@ -25,17 +23,19 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsc -b",
+    "build": "node ./scripts/build.mjs",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "prepack": "pnpm run clean && pnpm run build",
     "test": "vitest run apps/cli/src/**/*.test.ts",
     "typecheck": "tsc -p tsconfig.json --pretty false --noEmit && tsc -p tsconfig.test.json --pretty false"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@clack/prompts": "^0.8.2",
     "@org-agent-skills/config": "workspace:*",
     "@org-agent-skills/core": "workspace:*",
     "commander": "^13.1.0",
+    "esbuild": "^0.25.9",
     "execa": "^9.5.2"
   }
 }
