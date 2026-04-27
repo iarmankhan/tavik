@@ -6,7 +6,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { runCommand } from '../bridges/process.js';
 import { scaffoldOrgRepository } from '../services/scaffold.js';
 import { ensureDirectory, removePath } from '../utils/fs.js';
-import { connectMachine, explainPlan, syncMachine } from './planner.js';
+import {
+  connectMachine,
+  disconnectMachine,
+  explainPlan,
+  readStatus,
+  syncMachine,
+} from './planner.js';
 
 describe('planner', () => {
   const temporaryPaths: string[] = [];
@@ -128,6 +134,50 @@ describe('planner', () => {
     const logContents = await readFile(logPath, 'utf8');
     expect(logContents).toContain('add');
     expect(logContents).toContain('example-typescript-skill');
+  });
+
+  it('returns helpful no-state responses before a machine is connected', async () => {
+    const machineRoot = await mkdtemp(join(tmpdir(), 'tavik-empty-machine-'));
+    temporaryPaths.push(machineRoot);
+
+    await expect(
+      explainPlan(undefined, machineRoot, {
+        agentId: 'codex',
+        repoPath: machineRoot,
+      }),
+    ).rejects.toThrow(
+      'No connected org source found. Run `tavik connect` first or pass --org-root.',
+    );
+
+    await expect(
+      syncMachine(undefined, machineRoot, {
+        agentId: 'codex',
+        repoPath: machineRoot,
+      }),
+    ).rejects.toThrow(
+      'No connected org source found. Run `tavik connect` first or pass --org-root.',
+    );
+
+    expect(await readStatus(machineRoot)).toBe('No managed state found.');
+    await expect(disconnectMachine(machineRoot)).resolves.toEqual({
+      removedFiles: [],
+      removedState: false,
+      statePath: join(machineRoot, '.tavik', 'managed-state.json'),
+    });
+  });
+
+  it('renders status with empty managed file sections', async () => {
+    const machineRoot = await mkdtemp(join(tmpdir(), 'tavik-status-'));
+    temporaryPaths.push(machineRoot);
+
+    await scaffoldOrgRepository(machineRoot, 'acme');
+    await connectMachine(machineRoot, machineRoot);
+    const status = await readStatus(machineRoot);
+
+    expect(status).toContain('Connected org source:');
+    expect(status).toContain('Last sync: never');
+    expect(status).toContain('Refresh support artifacts:');
+    expect(status).toContain('Support levels:');
   });
 });
 

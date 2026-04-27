@@ -260,6 +260,72 @@ describe.each(adapterCases)('$id adapter contract', (adapterCase) => {
   }
 });
 
+describe('generic-skills adapter command resolution', () => {
+  it('falls back to npx when skills is unavailable', async () => {
+    const environment = await createTestEnvironment();
+    try {
+      await createFakeBinary(environment.binDir, 'npx');
+      const adapter = new GenericSkillsAdapter(
+        buildAdapterEnvironment(environment),
+      );
+
+      const plan = await adapter.computePlan({ baseGuidance, skills });
+
+      expect(plan.externalActions[0]?.command).toEqual([
+        'npx',
+        'skills',
+        'add',
+        'example-org/typescript-strict',
+      ]);
+    } finally {
+      await cleanupTestEnvironment(environment);
+    }
+  });
+
+  it('falls back to pnpm dlx when only pnpm is available', async () => {
+    const environment = await createTestEnvironment();
+    try {
+      await createFakeBinary(environment.binDir, 'pnpm');
+      const adapter = new GenericSkillsAdapter(
+        buildAdapterEnvironment(environment),
+      );
+
+      const plan = await adapter.computePlan({ baseGuidance, skills });
+
+      expect(plan.externalActions[0]?.command).toEqual([
+        'pnpm',
+        'dlx',
+        'skills',
+        'add',
+        'example-org/typescript-strict',
+      ]);
+    } finally {
+      await cleanupTestEnvironment(environment);
+    }
+  });
+
+  it('falls back to bunx when no preferred executable exists', async () => {
+    const environment = await createTestEnvironment();
+    try {
+      await createFakeBinary(environment.binDir, 'bunx');
+      const adapter = new GenericSkillsAdapter(
+        buildAdapterEnvironment(environment),
+      );
+
+      const plan = await adapter.computePlan({ baseGuidance, skills });
+
+      expect(plan.externalActions[0]?.command).toEqual([
+        'bunx',
+        'skills',
+        'add',
+        'example-org/typescript-strict',
+      ]);
+    } finally {
+      await cleanupTestEnvironment(environment);
+    }
+  });
+});
+
 async function createTestEnvironment(): Promise<TestEnvironment> {
   const rootPath = await mkdtemp(path.join(os.tmpdir(), 'tavik-adapters-'));
   const workspaceRoot = path.join(rootPath, 'workspace');
