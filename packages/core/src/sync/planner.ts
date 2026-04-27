@@ -82,7 +82,7 @@ function selectArtifacts(plan: {
       plan.repoFacts,
       plan.agentId,
     );
-    if (!match.matched && artifact.metadata.mode !== 'always') {
+    if (!match.matched) {
       continue;
     }
 

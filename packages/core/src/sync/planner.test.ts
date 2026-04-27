@@ -7,6 +7,7 @@ import { runCommand } from '../bridges/process.js';
 import { scaffoldOrgRepository } from '../services/scaffold.js';
 import { ensureDirectory, removePath } from '../utils/fs.js';
 import {
+  buildEffectivePlan,
   connectMachine,
   disconnectMachine,
   explainPlan,
@@ -50,6 +51,63 @@ describe('planner', () => {
     expect(output).toContain('Agent: codex');
     expect(output).toContain('example-typescript-skill');
     expect(output).toContain('org-default');
+  });
+
+  it('does not apply repo-scoped always-on base rules to non-matching repos', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'tavik-'));
+    temporaryPaths.push(root);
+    await scaffoldOrgRepository(root, 'acme');
+    await writeFile(
+      join(root, 'base-rules', 'org-default', 'rule.metadata.yml'),
+      `name: org-default
+description: Always-on organization default guidance
+type: base-rule
+enabled: true
+mode: always
+priority: 10
+source: org
+agents:
+  - codex
+applies_to:
+  repos:
+    - somethings-api
+  repo_patterns: []
+  languages: []
+  frameworks: []
+  path_patterns: []
+  agents: []
+executable: false
+`,
+      'utf8',
+    );
+
+    const repoPath = join(root, 'fixtures', 'blog');
+    await ensureDirectory(repoPath);
+    await writeFile(join(repoPath, 'package.json'), '{}', 'utf8');
+
+    const plan = await buildEffectivePlan(root, {
+      agentId: 'codex',
+      repoPath,
+      repoName: 'blog',
+    });
+
+    expect(plan.applicableBaseRules).toHaveLength(0);
+    expect(plan.precedence.chosenArtifactNames).toEqual([]);
+    expect(plan.precedence.reasons).toEqual(['no applicable base rules found']);
+    const instructionsOperation = plan.adapterPlan.fileOperations.find(
+      (operation) => operation.path.endsWith('AGENTS.md'),
+    );
+    expect(instructionsOperation?.content?.includes('Org Default Guidance')).toBe(
+      false,
+    );
+    expect(instructionsOperation?.content?.includes('_Source: `org-default`_')).toBe(
+      false,
+    );
+    expect(
+      plan.adapterPlan.fileOperations.some((operation) =>
+        operation.path.endsWith('managed-state.json'),
+      ),
+    ).toBe(true);
   });
 
   it('connects and syncs managed state through the adapter layer', async () => {
