@@ -36,21 +36,17 @@ export function resolveBaseRulePrecedence(
     );
   });
 
-  const topChoice = sorted.at(0);
-  const chosen = topChoice === undefined ? [] : [topChoice];
-  const discarded = sorted.slice(1);
+  const chosen = sorted;
 
   return {
     chosen,
     decision: {
       chosenArtifactNames: chosen.map((item) => item.artifact.metadata.name),
-      discardedArtifactNames: discarded.map(
-        (item) => item.artifact.metadata.name,
-      ),
+      discardedArtifactNames: [],
       reasons:
-        topChoice !== undefined
+        chosen.length > 0
           ? [
-              `selected "${topChoice.artifact.metadata.name}" by precedence tier, priority, then lexical order`,
+              'ordered applicable base rules by precedence tier, priority, then lexical order',
             ]
           : ['no applicable base rules found'],
     },

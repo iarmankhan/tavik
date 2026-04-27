@@ -1,6 +1,6 @@
 {
   "name": "tavik",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "CLI for managing organization-owned AI agent guidance and reusable skills.",
   "type": "module",
   "bin": {

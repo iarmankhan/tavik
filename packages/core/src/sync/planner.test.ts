@@ -97,12 +97,12 @@ executable: false
     const instructionsOperation = plan.adapterPlan.fileOperations.find(
       (operation) => operation.path.endsWith('AGENTS.md'),
     );
-    expect(instructionsOperation?.content?.includes('Org Default Guidance')).toBe(
-      false,
-    );
-    expect(instructionsOperation?.content?.includes('_Source: `org-default`_')).toBe(
-      false,
-    );
+    expect(
+      instructionsOperation?.content?.includes('Org Default Guidance'),
+    ).toBe(false);
+    expect(
+      instructionsOperation?.content?.includes('_Source: `org-default`_'),
+    ).toBe(false);
     expect(
       plan.adapterPlan.fileOperations.some((operation) =>
         operation.path.endsWith('managed-state.json'),

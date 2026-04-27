@@ -21,7 +21,7 @@ import { Command } from 'commander';
 import { ensureValue } from './commands/helpers.js';
 import { renderOutput } from './output/render.js';
 
-const CLI_VERSION = '0.1.0';
+const CLI_VERSION = '0.1.3';
 
 type CommonOptions = {
   json?: boolean;

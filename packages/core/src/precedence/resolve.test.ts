@@ -40,7 +40,7 @@ function createApplicableArtifact(
 }
 
 describe('resolveBaseRulePrecedence', () => {
-  it('prefers exact matches over higher-priority pattern and generic matches', () => {
+  it('orders exact matches ahead of pattern and generic matches', () => {
     const exact = createApplicableArtifact('repo-exact', 5, [
       'repo matched exact selector "billing-api"',
     ]);
@@ -55,14 +55,13 @@ describe('resolveBaseRulePrecedence', () => {
 
     expect(result.chosen.map((item) => item.artifact.metadata.name)).toEqual([
       'repo-exact',
-    ]);
-    expect(result.decision.discardedArtifactNames).toEqual([
       'repo-pattern',
       'repo-generic',
     ]);
+    expect(result.decision.discardedArtifactNames).toEqual([]);
   });
 
-  it('falls back to priority and lexical order within the same precedence tier', () => {
+  it('orders by priority and lexical order within the same precedence tier', () => {
     const highPriority = createApplicableArtifact('zebra-rule', 90, [
       'repo matched pattern selector',
     ]);
@@ -81,10 +80,29 @@ describe('resolveBaseRulePrecedence', () => {
 
     expect(result.chosen.map((item) => item.artifact.metadata.name)).toEqual([
       'aardvark-rule',
+      'zebra-rule',
+      'aardvark-rule',
     ]);
     expect(result.decision.reasons).toEqual([
-      'selected "aardvark-rule" by precedence tier, priority, then lexical order',
+      'ordered applicable base rules by precedence tier, priority, then lexical order',
     ]);
+  });
+
+  it('keeps multiple always-on base rules when they share the same tier', () => {
+    const lowPriority = createApplicableArtifact('org-default', 10, [
+      'artifact has no restrictive selectors',
+    ]);
+    const highPriority = createApplicableArtifact('ubiquitous-language', 50, [
+      'artifact has no restrictive selectors',
+    ]);
+
+    const result = resolveBaseRulePrecedence([lowPriority, highPriority]);
+
+    expect(result.chosen.map((item) => item.artifact.metadata.name)).toEqual([
+      'ubiquitous-language',
+      'org-default',
+    ]);
+    expect(result.decision.discardedArtifactNames).toEqual([]);
   });
 
   it('returns an empty decision when no base rules apply', () => {
